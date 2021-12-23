@@ -1,42 +1,38 @@
 import express from "express";
 import { ObjectId } from "mongodb";
-import databaseClient from "./lib/db.client.js";
+import mongoose from "mongoose";
+import Dino from "./models/dino-model.js";
 
 const server = express();
+
+mongoose.connect("mongodb://localhost:27017/flaky-dinosaurs");
 
 server.use(express.json());
 
 server.get("/dinos/:dinoId", async (req, res) => {
   const dinoId = req.params.dinoId;
-  await databaseClient.connect();
-  const db = client.db("flaky-dinosaurs");
-  const collection = db.collection("dinosaurs");
-  const foundDino = await collection.findOne({ _id: ObjectId(dinoId) });
+  const foundDino = await Dino.findById(dinoId);
   res.json(foundDino);
 });
 
 server.get("/dinos", async (req, res) => {
-  await databaseClient.connect();
-  const db = client.db("flaky-dinosaurs");
-  const collection = db.collection("dinosaurs");
-
-  const dinos = await collection.find().toArray();
+  const dinos = await Dino.find();
   res.json(dinos);
 });
 
 server.post("/dinos", async (req, res) => {
-  const dinosaur = {
+  const dinosaur = new Dino({
     ...req.body,
-  };
-
-  await databaseClient.connect();
-  const db = client.db("flaky-dinosaurs");
-  const collection = db.collection("dinosaurs");
-  const result = await collection.insertOne(dinosaur);
-
-  res.json({
-    message: "You succesfully created a dino with id: " + result.insertedId,
   });
+  try {
+    const result = await dinosaur.save();
+    res.json({
+      message: "You succesfully created a dino", // + result.insertedId,
+      data: result,
+    });
+  } catch (error) {
+    res.json(error);
+  }
 });
 
 server.listen(4000, () => {
