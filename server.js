@@ -20,6 +20,35 @@ server.get("/dinos", async (req, res) => {
   res.json(dinos);
 });
 
+server.put("/dinos/:dinoId", async (req, res) => {
+  const dinoId = req.params.dinoId;
+  const dino = req.body;
+  const result = await Dino.findByIdAndUpdate(dinoId, dino, {
+    returnDocument: "after",
+  });
+  res.json(result);
+});
+
+server.delete("/dinos/:dinoId", async (req, res) => {
+  const dinoId = req.params.dinoId;
+  try {
+    const result = await Dino.findByIdAndDelete(dinoId);
+    if (result) {
+      res.json({
+        success: true,
+        message: "Deleted Dino from database",
+      });
+    } else {
+      res.json({
+        success: false,
+        message: "Could not delete Dino from database",
+      });
+    }
+  } catch (error) {
+    res.json(error);
+  }
+});
+
 server.post("/dinos", async (req, res) => {
   const dinosaur = new Dino({
     ...req.body,
